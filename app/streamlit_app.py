@@ -373,7 +373,7 @@ if uploaded_file:
 
     # REAL stored depth map
     cv2.imwrite(
-        "outputs/depth_maps/depth_map.png",
+        "outputs\\depth_maps\\depth_map.png",
         depth_gray
     )
 
@@ -390,7 +390,7 @@ if uploaded_file:
 
     # save prediction output
     cv2.imwrite(
-        "outputs/predictions/prediction.png",
+        "outputs\\predictions\\depth_prediction.png",
         cv2.cvtColor(depth_map, cv2.COLOR_RGB2BGR)
     )
 
