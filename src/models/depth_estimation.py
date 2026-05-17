@@ -1,130 +1,41 @@
-import os
-
-# =========================================
-# MATPLOTLIB HEADLESS FIX
-# =========================================
-
-os.environ["MPLCONFIGDIR"] = "/tmp/matplotlib"
-
 import matplotlib
-matplotlib.use("Agg")
+matplotlib.use("Agg")  # 🔥 headless backend
 
 import torch
-import numpy as np
-import matplotlib.pyplot as plt
-
+from transformers import DPTImageProcessor, DPTForDepthEstimation
 from PIL import Image
+import matplotlib.pyplot as plt
+import numpy as np
 
-from transformers import (
-    DPTImageProcessor,
-    DPTForDepthEstimation
-)
-
-# =========================================
-# LIGHTWEIGHT MODEL
-# =========================================
-
-MODEL_NAME = "Intel/dpt-small"
-
-
-# =========================================
-# LOAD MODEL
-# =========================================
 
 def load_model():
-
-    processor = DPTImageProcessor.from_pretrained(
-        MODEL_NAME
-    )
-
-    model = DPTForDepthEstimation.from_pretrained(
-        MODEL_NAME,
-        low_cpu_mem_usage=True
-    )
-
-    model.eval()
-
+    processor = DPTImageProcessor.from_pretrained("Intel/dpt-hybrid-midas")
+    model = DPTForDepthEstimation.from_pretrained("Intel/dpt-hybrid-midas")
     return processor, model
 
 
-# =========================================
-# GENERATE DEPTH MAP
-# =========================================
+def generate_depth_map(image_path, processor, model, save_path):
+    image = Image.open(image_path).convert("RGB")
 
-def generate_depth_map(
-    image_path,
-    processor,
-    model,
-    save_path
-):
-
-    image = Image.open(
-        image_path
-    ).convert("RGB")
-
-    inputs = processor(
-        images=image,
-        return_tensors="pt"
-    )
+    inputs = processor(images=image, return_tensors="pt")
 
     with torch.no_grad():
-
         outputs = model(**inputs)
-
         predicted_depth = outputs.predicted_depth
 
     prediction = torch.nn.functional.interpolate(
-
         predicted_depth.unsqueeze(1),
-
         size=image.size[::-1],
-
         mode="bicubic",
-
         align_corners=False,
-
     ).squeeze()
 
     depth_map = prediction.cpu().numpy()
+    depth_map = (depth_map - depth_map.min()) / (depth_map.max() - depth_map.min())
 
-    # =========================================
-    # NORMALIZE DEPTH
-    # =========================================
-
-    depth_min = depth_map.min()
-
-    depth_max = depth_map.max()
-
-    depth_map = (
-
-        depth_map - depth_min
-
-    ) / (
-
-        depth_max - depth_min
-    )
-
-    # =========================================
-    # SAVE DEPTH IMAGE
-    # =========================================
-
-    plt.figure(figsize=(8, 8))
-
-    plt.imshow(
-        depth_map,
-        cmap="inferno"
-    )
-
+    plt.imshow(depth_map, cmap="plasma")
     plt.axis("off")
-
-    plt.tight_layout()
-
-    plt.savefig(
-        save_path,
-        bbox_inches="tight",
-        pad_inches=0
-    )
-
+    plt.savefig(save_path, bbox_inches="tight", pad_inches=0)
     plt.close()
 
     return depth_map

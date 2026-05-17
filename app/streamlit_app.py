@@ -1,14 +1,16 @@
 import streamlit as st
-from PIL import Image
+import cv2
 import numpy as np
+import joblib
+import plotly.graph_objects as go
 
-# =========================================
-# PAGE CONFIG
-# =========================================
+from PIL import Image
+
+from src.preprocessing.preprocess import preprocess_image
+from src.features.extract import extract_features
 
 st.set_page_config(
     page_title="AI Surface Intelligence",
-    page_icon="🚀",
     layout="wide"
 )
 
@@ -16,30 +18,23 @@ st.set_page_config(
 # LOAD CSS
 # =========================================
 
-def load_css():
-
-    with open("app/static/styles.css") as f:
-        st.markdown(
-            f"<style>{f.read()}</style>",
-            unsafe_allow_html=True
-        )
-
-load_css()
+with open("assets/styles.css") as f:
+    st.markdown(
+        f"<style>{f.read()}</style>",
+        unsafe_allow_html=True
+    )
 
 # =========================================
-# HEADER
+# TITLE
 # =========================================
 
 st.markdown(
-    """
-    <h1 class="main-title">
-        🚀 AI Surface Intelligence
-    </h1>
-
-    <p class="sub-title">
-        Interactive Depth + Vision Analysis
-    </p>
-    """,
+    '''
+    <div class="hero">
+        <h1>🚀 AI Surface Intelligence</h1>
+        <p>Spatial Vision Analytics Dashboard</p>
+    </div>
+    ''',
     unsafe_allow_html=True
 )
 
@@ -47,180 +42,126 @@ st.markdown(
 # FILE UPLOAD
 # =========================================
 
-uploaded_file = st.file_uploader(
-    "Choose Surface Image",
+uploaded = st.file_uploader(
+    "Upload Surface Image",
     type=["png", "jpg", "jpeg"]
 )
 
-# =========================================
-# MAIN ANALYSIS
-# =========================================
+if uploaded:
 
-if uploaded_file:
+    image = Image.open(uploaded)
 
-    image = Image.open(uploaded_file)
-
-    image_np = np.array(image)
-
-    st.markdown(
-        """
-        <div class="section-title">
-            📷 Input Image
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    img_np = np.array(image)
 
     st.image(
         image,
         use_container_width=True
     )
 
-    # =========================================
-    # MOCK AI RESULTS
-    # =========================================
+    # =====================================
+    # PREPROCESS
+    # =====================================
 
-    prediction = "Pothole Detected"
+    processed = preprocess_image(img_np)
 
-    confidence = "96.4%"
+    # =====================================
+    # FEATURES
+    # =====================================
 
-    depth_level = "Moderate"
+    features = extract_features(processed)
 
-    avg_depth = "0.47"
+    # =====================================
+    # LOAD MODEL
+    # =====================================
 
-    # =========================================
-    # METRICS
-    # =========================================
+    model = joblib.load("models/model.pkl")
 
-    st.markdown(
-        """
-        <div class="section-title">
-            📊 Analysis Metrics
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    selector = joblib.load("models/selector.pkl")
 
-    c1, c2, c3, c4 = st.columns(4)
+    selected = selector.transform([features])
+
+    probs = model.predict_proba(selected)[0]
+
+    prediction = model.classes_[np.argmax(probs)]
+
+    confidence = float(np.max(probs))
+
+    # =====================================
+    # DEPTH SIMULATION
+    # =====================================
+
+    gray = cv2.cvtColor(img_np, cv2.COLOR_RGB2GRAY)
+
+    depth = cv2.Laplacian(gray, cv2.CV_64F)
+
+    depth = np.absolute(depth)
+
+    depth = depth / depth.max()
+
+    # =====================================
+    # DASHBOARD
+    # =====================================
+
+    c1, c2, c3 = st.columns(3)
 
     with c1:
+
         st.metric(
             "Prediction",
             prediction
         )
 
     with c2:
+
         st.metric(
             "Confidence",
-            confidence
+            f"{confidence*100:.2f}%"
         )
 
     with c3:
+
         st.metric(
-            "Depth Level",
-            depth_level
+            "Depth Severity",
+            "Moderate"
         )
 
-    with c4:
-        st.metric(
-            "Avg Depth",
-            avg_depth
-        )
+    # =====================================
+    # DEPTH MAP
+    # =====================================
 
-    # =========================================
-    # PERFORMANCE
-    # =========================================
-
-    st.markdown(
-        """
-        <div class="section-title">
-            ⚡ Performance Monitor
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-    p1, p2, p3, p4 = st.columns(4)
-
-    p1.metric("Inference", "0.42s")
-    p2.metric("GPU Usage", "62%")
-    p3.metric("Latency", "120ms")
-    p4.metric("FPS", "24")
-
-    # =========================================
-    # HEATMAP
-    # =========================================
-
-    st.markdown(
-        """
-        <div class="section-title">
-            🌊 Depth Heatmap
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    st.subheader("Depth Estimation")
 
     st.image(
-        image,
+        depth,
         use_container_width=True
     )
 
-    # =========================================
-    # SPATIAL OVERLAY
-    # =========================================
+    # =====================================
+    # FEATURE IMPORTANCE
+    # =====================================
 
-    st.markdown(
-        """
-        <div class="section-title">
-            🚨 Spatial Severity Overlay
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    if hasattr(model, "feature_importances_"):
 
-    st.success("🟢 Safe Zones")
+        fig = go.Figure()
 
-    st.warning("🟡 Moderate Regions")
+        fig.add_trace(
 
-    st.error("🔴 Critical Surface Damage")
+            go.Bar(
+                y=model.feature_importances_[:10]
+            )
+        )
 
-# =========================================
-# SIDEBAR
-# =========================================
+        st.plotly_chart(
+            fig,
+            use_container_width=True
+        )
 
-with st.sidebar:
+    # =====================================
+    # FEATURE ANALYTICS
+    # =====================================
 
-    st.title("⚙️ AI Controls")
+    st.subheader("Feature Analytics")
 
-    st.slider(
-        "Depth Threshold",
-        0.0,
-        1.0,
-        0.5
-    )
+    for i, value in enumerate(features[:10]):
 
-    st.selectbox(
-        "Model",
-        [
-            "DPT Small",
-            "MiDaS",
-            "Depth Anything"
-        ]
-    )
-
-    st.checkbox(
-        "Enable Heatmap",
-        value=True
-    )
-
-    st.checkbox(
-        "Enable GPU Monitoring",
-        value=True
-    )
-
-    st.checkbox(
-        "Enable Spatial Overlay",
-        value=True
-    )
-
-    st.button("🚀 Analyze")
+        st.progress(float(abs(value)))
