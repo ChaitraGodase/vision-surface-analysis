@@ -1134,4 +1134,17 @@ h1 {
     background: rgba(59,130,246,0.15);
 
     color: #60a5fa;
+}.main-title {
+    text-align: center;
+    font-size: 58px;
+    font-weight: 800;
+    color: white;
+    margin-top: 20px;
+}
+
+.sub-title {
+    text-align: center;
+    font-size: 22px;
+    color: #cbd5e1;
+    margin-bottom: 40px;
 }
