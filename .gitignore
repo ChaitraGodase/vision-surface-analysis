@@ -12,3 +12,5 @@ app/static/uploads/
 app/static/outputs/
 
 data/
+models/
+*.pkl
