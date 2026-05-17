@@ -1,3 +1,40 @@
+/* =====================================================
+STREAMLIT GLOBAL FIX
+===================================================== */
+
+html,
+body,
+[data-testid="stAppViewContainer"],
+[data-testid="stApp"] {
+
+    background: #020617;
+    color: white;
+    overflow-x: hidden;
+}
+
+/* REMOVE STREAMLIT DEFAULT PADDING */
+
+.block-container {
+
+    padding-top: 2rem;
+    padding-left: 3rem;
+    padding-right: 3rem;
+    padding-bottom: 2rem;
+}
+
+/* HIDE STREAMLIT MENU */
+
+#MainMenu {
+    visibility: hidden;
+}
+
+footer {
+    visibility: hidden;
+}
+
+header {
+    visibility: hidden;
+}
 * {
     margin: 0;
     padding: 0;
