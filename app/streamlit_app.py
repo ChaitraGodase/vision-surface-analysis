@@ -1,8 +1,20 @@
+import sys
+import os
+
+sys.path.append(
+    os.path.abspath(
+        os.path.join(
+            os.path.dirname(__file__),
+            ".."
+        )
+    )
+)
+
 import streamlit as st
 import cv2
 import numpy as np
-import joblib
 import plotly.graph_objects as go
+import joblib
 
 from PIL import Image
 
