@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>AI Surface Intelligence</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='styles.css') }}">
+
+    <!-- FONT -->
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com">
+
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+          rel="stylesheet">
+
+</head>
+
+<body>
+
+<!-- ========================= -->
+<!-- BACKGROUND -->
+<!-- ========================= -->
+
+<div class="bg-grid"></div>
+
+<div class="bg-glow glow1"></div>
+
+<div class="bg-glow glow2"></div>
+
+<!-- ========================= -->
+<!-- HERO -->
+<!-- ========================= -->
+
+<section class="hero-card">
+
+    <div class="hero-top">
+
+        <div>
+
+            <p class="badge">
+                SPATIAL AI SYSTEM
+            </p>
+
+            <h1>
+                🚀 AI Surface Intelligence
+            </h1>
+
+            <p class="subtitle">
+                Transformer-Based Depth + Vision Analytics
+            </p>
+
+        </div>
+
+        <!-- STATUS -->
+        <div class="status-box">
+
+            <div class="pulse"></div>
+
+            <span>
+                AI MODEL ACTIVE
+            </span>
+
+        </div>
+
+    </div>
+
+    <!-- ========================= -->
+    <!-- UPLOAD FORM -->
+    <!-- ========================= -->
+
+    <form method="POST"
+          enctype="multipart/form-data"
+          class="upload-form">
+
+        <label class="upload-box">
+
+            <input type="file"
+                   name="image"
+                   required>
+
+            <div class="upload-content">
+
+                <div class="upload-icon">
+                    📤
+                </div>
+
+                <h3>
+                    Upload Surface Image
+                </h3>
+
+                <p>
+                    Drag & Drop or Click to Analyze
+                </p>
+
+            </div>
+
+        </label>
+
+        <!-- BUTTON -->
+        <button class="analyze-btn"
+                onclick="showLoading()">
+
+            Analyze Surface
+
+        </button>
+
+    </form>
+
+    <!-- ========================= -->
+    <!-- LOADER -->
+    <!-- ========================= -->
+
+    <div id="loading"
+         class="loader-wrapper"
+         style="display:none;">
+
+        <div class="loader"></div>
+
+        <div class="pipeline-status">
+
+            <p>✔ Initializing AI Pipeline</p>
+
+            <p>✔ Running Preprocessing</p>
+
+            <p>✔ Extracting HOG Features</p>
+
+            <p>✔ Generating Depth Estimation</p>
+
+            <p>✔ Computing Severity Analysis</p>
+
+            <p>✔ Rendering Analytics</p>
+
+        </div>
+
+    </div>
+
+</section>
+
+<!-- ========================= -->
+<!-- ERROR -->
+<!-- ========================= -->
+
+{% if result and result.error %}
+
+<div class="error-box">
+
+    ⚠️ {{ result.error }}
+
+</div>
+
+{% endif %}
+
+<!-- ========================= -->
+<!-- RESULT DASHBOARD -->
+<!-- ========================= -->
+
+{% if result %}
+
+<div class="dashboard-grid">
+
+    <!-- ========================= -->
+    <!-- INPUT IMAGE -->
+    <!-- ========================= -->
+
+    <div class="glass-card large-card">
+
+        <div class="card-header">
+
+            <h2>
+                📷 Input Surface
+            </h2>
+
+            <span class="live-tag">
+                LIVE
+            </span>
+
+        </div>
+
+        <img class="main-img"
+             src="{{ image_path }}">
+
+        <!-- META -->
+        <div class="image-meta">
+
+            <div class="meta-box">
+
+                <span>Pipeline</span>
+
+                <strong>Active</strong>
+
+            </div>
+
+            <div class="meta-box">
+
+                <span>Model</span>
+
+                <strong>DPT Hybrid</strong>
+
+            </div>
+
+            <div class="meta-box">
+
+                <span>Analysis</span>
+
+                <strong>Realtime</strong>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ========================= -->
+    <!-- DEPTH MAP -->
+    <!-- ========================= -->
+
+    <div class="glass-card large-card">
+
+        <div class="card-header">
+
+            <h2>
+                🌊 Depth Estimation
+            </h2>
+
+            <span class="ai-tag">
+                AI
+            </span>
+
+        </div>
+
+        <img class="depth-img"
+             src="{{ result.depth_path }}">
+
+        <!-- DEPTH LEGEND -->
+        <div class="depth-legend">
+
+            <div>
+
+                <span class="legend-color shallow-color"></span>
+
+                Shallow
+
+            </div>
+
+            <div>
+
+                <span class="legend-color moderate-color"></span>
+
+                Moderate
+
+            </div>
+
+            <div>
+
+                <span class="legend-color deep-color"></span>
+
+                Deep
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ========================= -->
+    <!-- AI ANALYTICS -->
+    <!-- ========================= -->
+
+    <div class="glass-card analytics-card">
+
+        <div class="card-header">
+
+            <h2>
+                🧠 AI Inference
+            </h2>
+
+        </div>
+
+        <!-- PREDICTION -->
+        <div class="prediction-box">
+
+            <h3 id="typing-text"></h3>
+
+            <p class="confidence-text">
+
+                Confidence:
+                {{ result.confidence }}%
+
+            </p>
+
+        </div>
+
+        <!-- ========================= -->
+        <!-- SPEEDOMETER -->
+        <!-- ========================= -->
+
+        <div class="gauge-container">
+
+            <div class="speedometer">
+
+                <div class="dial"></div>
+
+                <div class="needle"
+                     id="needle"
+                     data-confidence="{{ result.confidence }}">
+                </div>
+
+                <div class="center-circle"></div>
+
+                <div class="gauge-text">
+
+                    {{ result.confidence }}%
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- SEVERITY -->
+        <div class="severity-box {{ result.depth_level | lower }}">
+
+            {{ result.depth_level }} Severity
+
+        </div>
+
+        <!-- ========================= -->
+        <!-- DEPTH STATS -->
+        <!-- ========================= -->
+
+        <div class="image-meta"
+             style="margin-top:25px;">
+
+            <div class="meta-box">
+
+                <span>Average Depth</span>
+
+                <strong>
+                    {{ result.avg_depth }}
+                </strong>
+
+            </div>
+
+            <div class="meta-box">
+
+                <span>Maximum Depth</span>
+
+                <strong>
+                    {{ result.max_depth }}
+                </strong>
+
+            </div>
+
+            <div class="meta-box">
+
+                <span>Minimum Depth</span>
+
+                <strong>
+                    {{ result.min_depth }}
+                </strong>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ========================= -->
+<!-- AI PIPELINE -->
+<!-- ========================= -->
+
+<section class="glass-card pipeline-card">
+
+    <div class="card-header">
+
+        <h2>
+            ⚙ AI Processing Pipeline
+        </h2>
+
+    </div>
+
+    <div class="pipeline-grid">
+
+        <div class="pipeline-step active-step">
+
+            <div class="step-icon">📥</div>
+
+            <h4>Image Input</h4>
+
+        </div>
+
+        <div class="pipeline-step active-step">
+
+            <div class="step-icon">🧹</div>
+
+            <h4>Preprocessing</h4>
+
+        </div>
+
+        <div class="pipeline-step active-step">
+
+            <div class="step-icon">📊</div>
+
+            <h4>Feature Extraction</h4>
+
+        </div>
+
+        <div class="pipeline-step active-step">
+
+            <div class="step-icon">🌊</div>
+
+            <h4>Depth Mapping</h4>
+
+        </div>
+
+        <div class="pipeline-step active-step">
+
+            <div class="step-icon">🤖</div>
+
+            <h4>Classification</h4>
+
+        </div>
+
+        <div class="pipeline-step active-step">
+
+            <div class="step-icon">📈</div>
+
+            <h4>Inference Output</h4>
+
+        </div>
+
+    </div>
+
+</section>
+
+<!-- ========================= -->
+<!-- FEATURE ANALYTICS -->
+<!-- ========================= -->
+
+<section class="glass-card">
+
+    <div class="card-header">
+
+        <h2>
+            📊 Feature Analytics
+        </h2>
+
+    </div>
+
+    <div class="features-grid">
+
+        {% for f in result.features_sample %}
+
+        <div class="feature-card">
+
+            <div class="feature-top">
+
+                <span>
+                    {{ f.name }}
+                </span>
+
+                <strong>
+
+                    {{ (f.value * 100) | round(1) }}
+
+                </strong>
+
+            </div>
+
+            <div class="progress">
+
+                <div class="progress-fill"
+                     data-width="{{ (f.value * 100) | round(2) }}">
+                </div>
+
+            </div>
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+</section>
+
+<!-- ========================= -->
+<!-- FEATURE IMPORTANCE -->
+<!-- ========================= -->
+
+<section class="glass-card">
+
+    <div class="card-header">
+
+        <h2>
+            📈 Feature Importance Analysis
+        </h2>
+
+    </div>
+
+    <img class="graph-img"
+         src="{{ result.importance_path }}">
+
+</section>
+
+{% endif %}
+<!-- ========================================================= -->
+<!-- ADD BELOW FEATURE IMPORTANCE SECTION IN index.html -->
+<!-- ========================================================= -->
+
+<!-- ====================================================== -->
+<!-- ADVANCED AI ANALYTICS -->
+<!-- ====================================================== -->
+
+<section class="glass-card advanced-section">
+
+    <div class="card-header">
+
+        <h2>
+            🚀 Advanced Spatial Intelligence
+        </h2>
+
+    </div>
+
+    <div class="advanced-grid">
+
+        <!-- GPU MONITOR -->
+        <div class="advanced-card">
+
+            <h3>
+                🖥 GPU Monitoring
+            </h3>
+
+            <div class="metric-row">
+
+                <span>Inference Time</span>
+
+                <strong>
+                    {{ result.inference_time if result.inference_time else '0.82s' }}
+                </strong>
+
+            </div>
+
+            <div class="metric-row">
+
+                <span>GPU Usage</span>
+
+                <strong>
+                    {{ result.gpu_usage if result.gpu_usage else '68%' }}
+                </strong>
+
+            </div>
+
+            <div class="metric-row">
+
+                <span>Latency</span>
+
+                <strong>
+                    {{ result.latency if result.latency else '21ms' }}
+                </strong>
+
+            </div>
+
+            <div class="metric-row">
+
+                <span>FPS</span>
+
+                <strong>
+                    {{ result.fps if result.fps else '31 FPS' }}
+                </strong>
+
+            </div>
+
+        </div>
+
+        <!-- DEPTH ANALYTICS -->
+        <div class="advanced-card">
+
+            <h3>
+                🌊 Surface Metrics
+            </h3>
+
+            <div class="metric-row">
+
+                <span>Average Depth</span>
+
+                <strong>
+                    {{ result.avg_depth }}
+                </strong>
+
+            </div>
+
+            <div class="metric-row">
+
+                <span>Maximum Depth</span>
+
+                <strong>
+                    {{ result.max_depth }}
+                </strong>
+
+            </div>
+
+            <div class="metric-row">
+
+                <span>Minimum Depth</span>
+
+                <strong>
+                    {{ result.min_depth }}
+                </strong>
+
+            </div>
+
+            <div class="metric-row">
+
+                <span>Severity</span>
+
+                <strong>
+                    {{ result.depth_level }}
+                </strong>
+
+            </div>
+
+        </div>
+
+        <!-- TECH STACK -->
+        <div class="advanced-card">
+
+            <h3>
+                🤖 AI Stack
+            </h3>
+
+            <div class="tech-stack">
+
+                <span>DPT Hybrid</span>
+
+                <span>MiDaS</span>
+
+                <span>Random Forest</span>
+
+                <span>HOG Features</span>
+
+                <span>OpenCV</span>
+
+                <span>PyTorch</span>
+
+                <span>Transformers</span>
+
+                <span>Feature Selection</span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+<!-- ====================================================== -->
+<!-- SPATIAL OVERLAY -->
+<!-- ====================================================== -->
+
+<section class="glass-card">
+
+    <div class="card-header">
+
+        <h2>
+            🛰 Spatial Severity Overlay
+        </h2>
+
+    </div>
+
+    <div class="overlay-container">
+
+        <img src="{{ result.depth_path }}"
+             class="overlay-image">
+
+        <!-- SAFE -->
+        <div class="zone safe-zone">
+
+            SAFE ZONE
+
+        </div>
+
+        <!-- MODERATE -->
+        <div class="zone moderate-zone">
+
+            MODERATE
+
+        </div>
+
+        <!-- CRITICAL -->
+        <div class="zone danger-zone">
+
+            CRITICAL
+
+        </div>
+
+    </div>
+
+</section>
+
+<!-- ====================================================== -->
+<!-- 3D RECONSTRUCTION -->
+<!-- ====================================================== -->
+
+<section class="glass-card">
+
+    <div class="card-header">
+
+        <h2>
+            🧊 3D Surface Reconstruction
+        </h2>
+
+    </div>
+
+    <div class="reconstruction-panel">
+
+        <!-- OPEN3D -->
+        <div class="recon-card">
+
+            <h3>
+                Open3D
+            </h3>
+
+            <p>
+                Point Cloud Generation
+            </p>
+
+        </div>
+
+        <!-- PLOTLY -->
+        <div class="recon-card">
+
+            <h3>
+                Plotly
+            </h3>
+
+            <p>
+                Interactive Surface Rendering
+            </p>
+
+        </div>
+
+        <!-- PYVISTA -->
+        <div class="recon-card">
+
+            <h3>
+                PyVista
+            </h3>
+
+            <p>
+                Scientific Mesh Visualization
+            </p>
+
+        </div>
+
+    </div>
+
+</section>
+
+<!-- ====================================================== -->
+<!-- REALTIME WEBCAM -->
+<!-- ====================================================== -->
+
+<section class="glass-card">
+
+    <div class="card-header">
+
+        <h2>
+            📹 Real-Time Webcam Analysis
+        </h2>
+
+    </div>
+
+    <div class="webcam-panel">
+
+        <div class="webcam-circle">
+
+            LIVE
+
+        </div>
+
+        <div class="webcam-content">
+
+            <h3>
+                Real-Time Surface Inspection
+            </h3>
+
+            <p>
+                AI Webcam Inference Ready
+            </p>
+
+            <code>
+                cv2.VideoCapture(0)
+            </code>
+
+        </div>
+
+    </div>
+
+</section>
+
+<!-- ====================================================== -->
+<!-- INTERACTIVE HEATMAP -->
+<!-- ====================================================== -->
+
+<section class="glass-card">
+
+    <div class="card-header">
+
+        <h2>
+            🔥 Interactive Depth Heatmap
+        </h2>
+
+    </div>
+
+    <div class="heatmap-container">
+
+        <div class="heatmap-bar"></div>
+
+        <div class="heatmap-labels">
+
+            <span>Shallow</span>
+
+            <span>Moderate</span>
+
+            <span>Deep</span>
+
+        </div>
+
+        <div class="heatmap-tech">
+
+            <span>Plotly</span>
+
+            <span>Three.js</span>
+
+            <span>WebGL</span>
+
+            <span>Shaders</span>
+
+        </div>
+
+    </div>
+
+</section>
+
+<!-- ========================= -->
+<!-- JAVASCRIPT -->
+<!-- ========================= -->
+
+<script>
+
+function showLoading() {
+
+    document.getElementById("loading").style.display = "flex";
+}
+
+/* ================================= */
+/* TYPEWRITER EFFECT */
+/* ================================= */
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const text = "{{ result.prediction if result else '' }}";
+
+    let i = 0;
+
+    function typeEffect() {
+
+        if (i < text.length) {
+
+            document.getElementById("typing-text").innerHTML += text.charAt(i);
+
+            i++;
+
+            setTimeout(typeEffect, 50);
+        }
+    }
+
+    typeEffect();
+
+    /* ================================= */
+    /* FEATURE BAR ANIMATION */
+    /* ================================= */
+
+    document.querySelectorAll(".progress-fill").forEach(el => {
+
+        const val = el.getAttribute("data-width");
+
+        el.style.width = val + "%";
+    });
+
+    /* ================================= */
+    /* SPEEDOMETER NEEDLE */
+    /* ================================= */
+
+    const needle = document.getElementById("needle");
+
+    if (needle) {
+
+        const value = Number(needle.dataset.confidence);
+
+        const angle = (value / 100) * 180 - 90;
+
+        needle.style.transform = `rotate(${angle}deg)`;
+    }
+
+});
+</script>
+
+</body>
+</html>

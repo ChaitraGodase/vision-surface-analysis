@@ -1,0 +1,14 @@
+venv/
+.venv/
+.vscode/
+__pycache__/
+*.pyc
+
+outputs/
+temp.jpg
+temp.png
+
+app/static/uploads/
+app/static/outputs/
+
+data/
